@@ -1,0 +1,11 @@
+builders:
+  glsl_builder:
+    import: "package:glslgen/builder.dart"
+    builder_factories: ["uniformDataBuilder"]
+    build_extensions: {
+      "$package$": [
+        "^lib/glslgen/uniforms.g.dart",
+      ],
+    }
+    auto_apply: dependents
+    build_to: source
