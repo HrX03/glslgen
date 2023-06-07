@@ -16,6 +16,7 @@ class GLSLBuilder extends Builder {
         await buildStep.findAssets(Glob("**/*.frag")).toList();
 
     final libraryBuilder = LibraryBuilder();
+    libraryBuilder.ignoreForFile.add("non_constant_identifier_names");
     libraryBuilder.directives.add(Directive.import("dart:ui", as: "ui"));
     libraryBuilder.directives
         .add(Directive.import("package:glslgen/glslgen.dart"));
@@ -43,8 +44,11 @@ class GLSLBuilder extends Builder {
     );
   }
 
-  void _buildLibrary(LibraryBuilder libraryBuilder, String fileName,
-      List<UniformData> uniforms) {
+  void _buildLibrary(
+    LibraryBuilder libraryBuilder,
+    String fileName,
+    List<UniformData> uniforms,
+  ) {
     final MethodBuilder methodBuilder = MethodBuilder();
 
     methodBuilder.name = "applyUniformsTo${fileName.pascalCase}Frag";
@@ -103,8 +107,7 @@ class GLSLBuilder extends Builder {
     return Reference(data.arrayLength != null ? "List<$baseType>" : baseType);
   }
 
-  void _setUniform(StringBuffer buffer, UniformData data, int index) {
-    final start = (data.layoutLocation ?? index);
+  void _setUniform(StringBuffer buffer, UniformData data, int start) {
     var accessorIndex = 0;
     for (int arrayIndex = 0;
         arrayIndex < (data.arrayLength ?? 1);

@@ -10,8 +10,6 @@ List<UniformData> parseGLSL(String contents) {
   final lexer = GLSLLexer(input);
   final tokens = CommonTokenStream(lexer);
   final parser = GLSLParser(tokens);
-  parser.addErrorListener(DiagnosticErrorListener());
-  parser.buildParseTree = true;
   final tree = parser.translationUnit();
   final visitor = UniformVisitor();
   visitor.visit(tree);

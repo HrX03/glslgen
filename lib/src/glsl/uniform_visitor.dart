@@ -318,15 +318,19 @@ class UniformVisitor extends GLSLParserBaseVisitor<void> {
       currentOffset += uniform.arrayLength ?? 1;
     }
 
-    final compacted = layout.values.fold([], (p, element) {
-      if (p.isEmpty) return [element];
-      if (p.last == element) return p;
+    final entries = List.of(layout.entries);
+    String? lastEntry;
+    for (final MapEntry(:key, :value) in entries) {
+      if (value != lastEntry) {
+        lastEntry = value;
+        continue;
+      }
 
-      return p..add(element);
-    });
+      layout.remove(key);
+    }
 
     final sorted = <UniformData>[];
-    for (final id in compacted) {
+    for (final id in layout.values) {
       final index = _uniformMappings[id];
       if (index == null) {
         throw Exception("Unknown uniform $id, this should not happen");
