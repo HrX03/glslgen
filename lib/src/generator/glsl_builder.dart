@@ -93,11 +93,13 @@ class GLSLBuilder extends Builder {
 
     methodBuilder.name = "applyUniformsTo${fileName.pascalCase}Frag";
     methodBuilder.returns = refer("void");
-    methodBuilder.requiredParameters.add(Parameter(
-      (b) => b
-        ..type = refer("ui.FragmentShader")
-        ..name = "shader",
-    ));
+    methodBuilder.requiredParameters.add(
+      Parameter(
+        (b) => b
+          ..type = refer("ui.FragmentShader")
+          ..name = "shader",
+      ),
+    );
     methodBuilder.optionalParameters.addAll([
       for (final uniform in uniforms)
         Parameter(
@@ -108,7 +110,7 @@ class GLSLBuilder extends Builder {
             ..required = true,
         ),
     ]);
-    StringBuffer body = StringBuffer();
+    final body = StringBuffer();
     final floatUniforms =
         uniforms.where((e) => e.type != UniformType.sampler2D).toList();
     for (int i = 0; i < floatUniforms.length; i++) {

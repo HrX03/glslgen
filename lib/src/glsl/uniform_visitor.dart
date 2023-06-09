@@ -34,7 +34,7 @@ class UniformData {
 
   @override
   String toString() {
-    String array = arrayLength != null ? "[$arrayLength]" : "";
+    final array = arrayLength != null ? "[$arrayLength]" : "";
 
     return "uniform ${type.name}$array $name";
   }
@@ -79,7 +79,8 @@ class UniformVisitor extends GLSLParserBaseVisitor<void> {
         final value = _solveExpr(finiteExprs.first);
         if (value.length != 1) {
           throw Exception(
-              "Invalid layout reference, expected int or int reference got $value");
+            "Invalid layout reference, expected int or int reference got $value",
+          );
         }
 
         location = value.first;
@@ -308,7 +309,7 @@ class UniformVisitor extends GLSLParserBaseVisitor<void> {
       for (int j = 0; j < (uniform.arrayLength ?? 1); j++) {
         if (layout.containsKey(offset + j)) {
           throw Exception(
-            "Layout mismatch! Requested layout offset (${currentOffset - 1}) but \"${layout[offset + j]}\" uniform already occupied the slot!",
+            'Layout mismatch! Requested layout offset (${currentOffset - 1}) but "${layout[offset + j]}" uniform already occupied the slot!',
           );
         }
 
