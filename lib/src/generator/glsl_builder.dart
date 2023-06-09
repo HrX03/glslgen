@@ -111,6 +111,14 @@ class GLSLBuilder extends Builder {
         ),
     ]);
     final body = StringBuffer();
+
+    for (final listUniform in uniforms.where((e) => e.arrayLength != null)) {
+      body.writeln(
+        "assert(${listUniform.name}.length == ${listUniform.arrayLength});",
+      );
+    }
+    if (uniforms.any((e) => e.arrayLength != null)) body.writeln();
+
     final floatUniforms =
         uniforms.where((e) => e.type != UniformType.sampler2D).toList();
     for (int i = 0; i < floatUniforms.length; i++) {
