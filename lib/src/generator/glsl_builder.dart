@@ -3,17 +3,41 @@ import 'dart:async';
 import 'package:build/build.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
-import 'package:glob/glob.dart';
 import 'package:glslgen/src/glsl/parser.dart';
 import 'package:glslgen/src/glsl/uniform_visitor.dart';
 import 'package:path/path.dart' as p;
+import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:recase/recase.dart';
 
 class GLSLBuilder extends Builder {
   @override
   Future<void> build(BuildStep buildStep) async {
-    final List<AssetId> assets =
-        await buildStep.findAssets(Glob("**/*.frag")).toList();
+    final pubspecSrc = await buildStep
+        .readAsString(AssetId(buildStep.inputId.package, "pubspec.yaml"));
+    final pubspec = Pubspec.parse(pubspecSrc);
+    final declaredShaders = pubspec.flutter?["shaders"];
+
+    if (declaredShaders == null) {
+      log.warning(
+        "No declared shaders in pubspec.yaml. The package will generate uniform bindings only for declared shaders under the flutter section in the pubspec",
+      );
+      return;
+    }
+    if (declaredShaders is! List) {
+      log.warning(
+        "The shaders section in the pubspec under the flutter section is not a list. Make sure to have it formatted as a YAML string list",
+      );
+      return;
+    }
+
+    final List<AssetId> assets;
+    try {
+      final shaders = declaredShaders.cast<String>();
+      assets =
+          shaders.map((e) => AssetId(buildStep.inputId.package, e)).toList();
+    } catch (e) {
+      return;
+    }
 
     final libraryBuilder = LibraryBuilder();
     libraryBuilder.ignoreForFile.add("non_constant_identifier_names");
@@ -22,8 +46,24 @@ class GLSLBuilder extends Builder {
         .add(Directive.import("package:glslgen/glslgen.dart"));
 
     for (final asset in assets) {
-      final contents = await buildStep.readAsString(asset);
-      final uniforms = parseGLSL(contents);
+      final String contents;
+      try {
+        contents = await buildStep.readAsString(asset);
+      } catch (e) {
+        log.warning("Invalid asset: ${asset.path}");
+        continue;
+      }
+
+      final List<UniformData> uniforms;
+
+      try {
+        uniforms = parseGLSL(contents);
+      } catch (e) {
+        log.warning(
+          "Could not parse GLSL for asset ${asset.path}:\n$e",
+        );
+        continue;
+      }
 
       final String fileName = p.basenameWithoutExtension(asset.path);
 
